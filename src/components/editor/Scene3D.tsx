@@ -41,11 +41,9 @@ const CameraController: React.FC<CameraControllerProps> = ({ enabled }) => {
   );
 };
 
-interface SceneContentProps {
-  onCanvasClick: () => void;
-}
+interface SceneContentProps {}
 
-const SceneContent: React.FC<SceneContentProps> = ({ onCanvasClick }) => {
+const SceneContent: React.FC<SceneContentProps> = () => {
   const project = useProjectStore(state => state.currentProject);
   const selectedWindowId = useProjectStore(state => state.selectedWindowId);
   const selectWindow = useProjectStore(state => state.selectWindow);
@@ -95,7 +93,7 @@ export const Scene3D: React.FC<Scene3DProps> = ({ className }) => {
   const selectWindow = useProjectStore(state => state.selectWindow);
 
   return (
-    <div className={className} onClick={() => selectWindow(null)}>
+    <div className={className}>
       <Canvas
         shadows
         camera={{ fov: 50, near: 0.1, far: 100 }}
@@ -106,7 +104,7 @@ export const Scene3D: React.FC<Scene3DProps> = ({ className }) => {
         <fog attach="fog" args={['#1a1a2e', 10, 30]} />
         
         <CameraController enabled={true} />
-        <SceneContent onCanvasClick={() => selectWindow(null)} />
+        <SceneContent />
       </Canvas>
     </div>
   );
