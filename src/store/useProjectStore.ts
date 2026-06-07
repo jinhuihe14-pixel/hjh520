@@ -26,6 +26,7 @@ interface ProjectState {
   
   setLighting: (mode: 'day' | 'evening') => void;
   setRoom: (roomId: string) => void;
+  setDiscount: (discount: number) => void;
   
   calculateQuote: () => QuoteResult;
   toggleCompare: (projectId: string) => void;
@@ -36,7 +37,12 @@ const generateId = () => `win-${Date.now()}-${Math.random().toString(36).substr(
 const loadProjectsFromStorage = (): Project[] => {
   try {
     const saved = localStorage.getItem('window-projects');
-    return saved ? JSON.parse(saved) : [];
+    if (!saved) return [];
+    const projects = JSON.parse(saved);
+    return projects.map((p: any) => ({
+      ...p,
+      discount: p.discount ?? 100
+    }));
   } catch {
     return [];
   }
@@ -67,6 +73,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       room,
       windows: [],
       lighting: 'day',
+      discount: 100,
       createdAt: Date.now()
     };
     
@@ -253,6 +260,19 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     get().saveProject();
   },
 
+  setDiscount: (discount: number) => {
+    const { currentProject } = get();
+    if (!currentProject) return;
+
+    const validDiscount = Math.max(0, Math.min(100, discount));
+    
+    set({
+      currentProject: { ...currentProject, discount: validDiscount }
+    });
+    
+    get().saveProject();
+  },
+
   calculateQuote: (): QuoteResult => {
     const { currentProject } = get();
     if (!currentProject) {
@@ -261,7 +281,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         profileCost: 0,
         glassCost: 0,
         hardwareCost: 0,
-        totalCost: 0
+        totalCost: 0,
+        discountedTotal: 0,
+        savings: 0
       };
     }
 
@@ -278,12 +300,20 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       hardwareCost += window.hardware.pricePerSet * window.panes;
     });
 
+    const totalCost = Math.round(profileCost + glassCost + hardwareCost);
+    const discount = currentProject.discount ?? 100;
+    const validDiscount = Math.max(0, Math.min(100, discount));
+    const discountedTotal = Math.round(totalCost * (validDiscount / 100));
+    const savings = totalCost - discountedTotal;
+
     return {
       totalArea: Math.round(totalArea * 100) / 100,
       profileCost: Math.round(profileCost),
       glassCost: Math.round(glassCost),
       hardwareCost: Math.round(hardwareCost),
-      totalCost: Math.round(profileCost + glassCost + hardwareCost)
+      totalCost,
+      discountedTotal,
+      savings
     };
   },
 

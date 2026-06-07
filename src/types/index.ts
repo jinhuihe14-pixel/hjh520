@@ -56,6 +56,7 @@ export interface Project {
   room: RoomPreset;
   windows: WindowInstance[];
   lighting: 'day' | 'evening';
+  discount: number;
   createdAt: number;
 }
 
@@ -65,6 +66,8 @@ export interface QuoteResult {
   glassCost: number;
   hardwareCost: number;
   totalCost: number;
+  discountedTotal: number;
+  savings: number;
 }
 
 export interface WindowTemplate {
